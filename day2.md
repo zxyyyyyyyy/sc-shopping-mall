@@ -90,6 +90,7 @@ getters
 modules
 
 9.2 vuex基本使用
+安装：npm i --save vuex
 
 9.3 vuex实现模块式开发
 如果项目过大，组件过多，接口也很多，数据也很多，可以让vuex实现模块式开发
