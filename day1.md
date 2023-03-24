@@ -161,7 +161,7 @@ Footer (在首页，搜索页)，但是在登录，注册页面没有
     -对象写法:额外的给路由组件传递一些props
       props:{a:1,b:2}
     -函数写法：可以params参数、query参数，通过props传递给路由组件
-      props:(route)=>{
+      props:($route)=>{
         return{
           keyword:$route.params.keyword,k:$route.query.k
         }

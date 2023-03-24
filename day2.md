@@ -9,6 +9,22 @@
 这种写法：治标不治本，将来在别的组件当中push|replace，编程式导航还是有类似的错误。
 解决方法：在引入VueRouter的路由index.js组件中，重写一下push | replace方法，底层原理还是调用原来的方法，但是包装一下，这样在其他组件中继续使用push | replace方法没有问题
 
+// 重写push | replace
+// 先把VueRouter原型对象下的push方法保存一份，之后重写会调用
+// 第一个参数：告诉原来的push方法，往哪里跳(传递哪些参数)
+// 直接调用originPush()方法，指向window,所以需要改变this指向，指向调用该方法的对象
+// apply | call 区别
+// 相同点：都可以改变this指向，都可以调用函数一次
+// 不同点：call、apply传递参数，call传参用逗号隔开，apply传参用数组形式
+let originPush = VueRouter.prototype.push;
+VueRouter.prototype.push = function (location, resolve, reject) {
+    if (resolve && reject) {
+        originPush.call(this, location, resolve, reject);
+    } else {
+        originPush.call(this, location, () => { }, () => { });
+    }
+};
+
 1.4
 this:当前组件实例(search)
 this.$router属性：当前的这个属性，属性值VueRouter类的一个实例，当在入口文件注册路由的时候，给组件实例添加$router|$route属性
