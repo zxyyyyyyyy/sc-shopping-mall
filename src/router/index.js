@@ -46,10 +46,11 @@ export default new VueRouter({
             name: 'home',
         },
         {
-            path: "/search",
+            name: 'search',
+            path: "/search/:keyword?",
             component: Search,
             meta: { show: true },
-            name: 'search',
+            
         },
         {
             path: "/login",

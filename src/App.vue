@@ -15,6 +15,10 @@ import Footer from './components/Footer/index.vue';
 
 export default {
   name: 'App',
+  mounted(){
+    // 派发一个action||获取商品分类的三级列表数据
+    this.$store.dispatch("categoryList");
+  },
   components: {
     Header,
     Footer,
