@@ -4,6 +4,9 @@
 -vuex(三连环)
 -组件获取仓库数据，动态展示数据
 
+合并参数：把query，params参数与searchParams内 相同属性的属性值赋值给 searchParams
+Object.assign(this.searchParams,this.$route.query,this.$route.params);
+
 2.1 动态开发面包屑的分类名
 编程式导航路由跳转[自己跳自己]
 
