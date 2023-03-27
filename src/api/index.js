@@ -17,3 +17,9 @@ export const reqFloorList = ()=>mockRequests.get('/floor');
 
 // 获取搜索页面数据 /api/list post请求  参数params至少是一个空对象
 export const reqGetSearchInfo = (params)=>requests({url:'/list',method:'post',data:params});
+
+// 获取详情页数据  
+
+
+
+

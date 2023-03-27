@@ -11,36 +11,44 @@
             </li>
           </ul>
           <ul class="fl sui-tag">
-            <li class="with-x" v-if="searchParams.categoryname">{{searchParams.categoryname}}<i>×</i></li>
+            <!-- 分类名面包屑 -->
+            <li class="with-x" v-if="searchParams.categoryname">
+              {{ searchParams.categoryname
+              }}<i @click="removeCategoryName">×</i>
+            </li>
+            <!-- 关键字面包屑 -->
+            <li class="with-x" v-if="searchParams.keyword">
+              {{ searchParams.keyword }}<i @click="removeKeyword">×</i>
+            </li>
+            <!-- 品牌面包屑 -->
+            <li class="with-x" v-if="searchParams.trademark">
+              {{ searchParams.trademark.split(":")[1] }}<i @click="removeTradeMark">×</i>
+            </li>
+            <!-- 平台属性面包屑 -->
+            <li class="with-x" v-for="(item,index) in searchParams.props" :key="index">
+              {{ item.split(":")[1] }}<i @click="removeProps(index)">×</i>
+            </li>
           </ul>
         </div>
 
         <!--selector-->
-        <SearchSelector />
+        <SearchSelector @trademarkInfo ="trademarkInfo" @attrInfo = "attrInfo"/>
 
         <!--details-->
         <div class="details clearfix">
           <div class="sui-navbar">
             <div class="navbar-inner filter">
-              <!-- 价格结构 -->
+              <!-- 排序结构 -->
               <ul class="sui-nav">
-                <li class="active">
-                  <a href="#">综合</a>
+                <li :class="{active:isOne}" @click="changeOrder(1)">
+                  <a >综合
+                    <span v-show="isOne" class="iconfont "  :class="{'icon-UP':isAsc,'icon-DOWN':isDesc}"></span>
+                  </a>
                 </li>
-                <li>
-                  <a href="#">销量</a>
-                </li>
-                <li>
-                  <a href="#">新品</a>
-                </li>
-                <li>
-                  <a href="#">评价</a>
-                </li>
-                <li>
-                  <a href="#">价格⬆</a>
-                </li>
-                <li>
-                  <a href="#">价格⬇</a>
+                <li :class="{active:isTwo}" @click="changeOrder(2)">
+                  <a >价格
+                    <span v-show="isTwo" class="iconfont "  :class="{'icon-UP':isAsc,'icon-DOWN':isDesc}"></span>
+                  </a>
                 </li>
               </ul>
             </div>
@@ -55,9 +63,11 @@
               >
                 <div class="list-wrap">
                   <div class="p-img">
-                    <a href="item.html" target="_blank"
+                    <!-- 进行路由跳转的时候：一定要带params参数:商品的id -->
+                    <router-link :to="`/detail/${goods.id}`"
                       ><img :src="goods.defaultImg"
-                    /></a>
+                      
+                    /></router-link>
                   </div>
                   <div class="price">
                     <strong>
@@ -92,35 +102,7 @@
             </ul>
           </div>
           <!-- 分页器 -->
-          <div class="fr page">
-            <div class="sui-pagination clearfix">
-              <ul>
-                <li class="prev disabled">
-                  <a href="#">«上一页</a>
-                </li>
-                <li class="active">
-                  <a href="#">1</a>
-                </li>
-                <li>
-                  <a href="#">2</a>
-                </li>
-                <li>
-                  <a href="#">3</a>
-                </li>
-                <li>
-                  <a href="#">4</a>
-                </li>
-                <li>
-                  <a href="#">5</a>
-                </li>
-                <li class="dotted"><span>...</span></li>
-                <li class="next">
-                  <a href="#">下一页»</a>
-                </li>
-              </ul>
-              <div><span>共10页&nbsp;</span></div>
-            </div>
-          </div>
+          <Pagination :pageNo = "searchParams.pageNo" :pageSize="searchParams.pageSize" :total="total" :continues="5" @getPageNo = "getPageNo"/>
         </div>
       </div>
     </div>
@@ -129,7 +111,7 @@
 
 <script>
 import SearchSelector from "./SearchSelector/SearchSelector";
-import { mapGetters } from "vuex";
+import { mapGetters ,mapState} from "vuex";
 export default {
   name: "Search",
   data() {
@@ -140,8 +122,8 @@ export default {
         category3id: "",
         categoryname: "",
         keyword: "",
-        // 排序
-        order: "",
+        // 排序(初始状态：综合|降序)
+        order: "1:desc",
         // 分页器：代表当前是第几页
         pageNo: 1,
         // 分页器：代表每一页展示数据个数
@@ -165,14 +147,94 @@ export default {
   computed: {
     // getter里面没有分模块，都在一起，所以取得时候用数组
     ...mapGetters(["goodsList"]),
+    ...mapState({
+      total:state=>state.search.searchList.total,
+    }),
+    isOne(){
+      return this.searchParams.order.indexOf("1") != -1;
+    },
+    isTwo(){
+      return this.searchParams.order.indexOf("2") != -1;
+    },
+    isAsc(){
+      return this.searchParams.order.indexOf("asc") != -1;
+    },
+    isDesc(){
+      return this.searchParams.order.indexOf("desc") != -1;
+    },
   },
   methods: {
+    // 派发请求获取搜索页数据
     getData() {
       this.$store.dispatch("getSearchInfo", this.searchParams);
       this.searchParams.category1id = "";
       this.searchParams.category2id = "";
       this.searchParams.category3id = "";
     },
+    // 移出分类名面包屑
+    removeCategoryName() {
+      this.searchParams.categoryname = "";
+      this.getData();
+      // 地址栏也需要修改：进行路由跳转(现在的路由跳转只是跳转到自己这里)
+      // 严谨：本意是删除query，如果路径当中出现params不应该删除，路由跳转的时候应该带着
+      if (this.$route.params) {
+        this.$router.push({ name: "search", params: this.$route.params });
+      }
+    },
+    // 移出关键字面包屑
+    removeKeyword() {
+      this.searchParams.keyword = undefined;
+      this.getData();
+      // 通知兄弟组件Header清除关键字
+      this.$bus.$emit("clear");
+      // 进行路由的跳转，自己跳自己，清除params参数
+      if (this.$route.query) {
+        this.$router.push({ name:"search", query: this.$route.query });
+      }
+    },
+    // 自定义事件回调
+    trademarkInfo(trademark){
+      // trademark参数要求："ID:品牌名称"
+      this.searchParams.trademark = `${trademark.tmId}:${trademark.tmName}`;
+      this.getData();
+    },
+    // 移出品牌名面包屑
+    removeTradeMark(){
+      this.searchParams.trademark = undefined;
+      this.getData();
+    },
+    // 收集平台属性回调函数
+    attrInfo(attrs,item){
+      let props = `${attrs.attrId}:${item}:${attrs.attrName}`;
+      if(this.searchParams.props.indexOf(props)==-1){
+        this.searchParams.props.push(props);
+      }
+      this.getData();
+    },
+    // 移出面包属性面包屑
+    removeProps(index){
+      this.searchParams.props.splice(index,1);
+      this.getData();
+    },
+    // 排序点击回调
+    changeOrder(flag){
+      let originOrder = this.searchParams.order;
+      let originFlag = this.searchParams.order.split(":")[0];
+      let originSort = this.searchParams.order.split(":")[1];
+      let newOrder = '';
+      if(flag == originFlag){
+        newOrder = `${originFlag}:${originSort == "desc"?"asc":"desc"}`;
+      }else{
+        newOrder = `${flag}:${"desc"}`;
+      }
+      this.searchParams.order = newOrder;
+      this.getData();
+    },
+    // 自定义事件：获取子组件的分页器当前页页码
+    getPageNo(pageNo){
+      this.searchParams.pageNo = pageNo;
+      this.getData();
+    }
   },
   watch: {
     $route(newValue, oldValue) {
@@ -426,92 +488,7 @@ export default {
         }
       }
 
-      .page {
-        width: 733px;
-        height: 66px;
-        overflow: hidden;
-        float: right;
-
-        .sui-pagination {
-          margin: 18px 0;
-
-          ul {
-            margin-left: 0;
-            margin-bottom: 0;
-            vertical-align: middle;
-            width: 490px;
-            float: left;
-
-            li {
-              line-height: 18px;
-              display: inline-block;
-
-              a {
-                position: relative;
-                float: left;
-                line-height: 18px;
-                text-decoration: none;
-                background-color: #fff;
-                border: 1px solid #e0e9ee;
-                margin-left: -1px;
-                font-size: 14px;
-                padding: 9px 18px;
-                color: #333;
-              }
-
-              &.active {
-                a {
-                  background-color: #fff;
-                  color: #e1251b;
-                  border-color: #fff;
-                  cursor: default;
-                }
-              }
-
-              &.prev {
-                a {
-                  background-color: #fafafa;
-                }
-              }
-
-              &.disabled {
-                a {
-                  color: #999;
-                  cursor: default;
-                }
-              }
-
-              &.dotted {
-                span {
-                  margin-left: -1px;
-                  position: relative;
-                  float: left;
-                  line-height: 18px;
-                  text-decoration: none;
-                  background-color: #fff;
-                  font-size: 14px;
-                  border: 0;
-                  padding: 9px 18px;
-                  color: #333;
-                }
-              }
-
-              &.next {
-                a {
-                  background-color: #fafafa;
-                }
-              }
-            }
-          }
-
-          div {
-            color: #333;
-            font-size: 14px;
-            float: right;
-            width: 241px;
-          }
-        }
-      }
+      
     }
   }
 }

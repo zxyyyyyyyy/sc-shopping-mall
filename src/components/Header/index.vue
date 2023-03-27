@@ -72,6 +72,12 @@ export default {
       this.$router.push(locations);
     },
   },
+  mounted(){
+    // 通过全局时间总线清除关键字
+    this.$bus.$on("clear",()=>{
+      this.keyword = '';
+    })
+  }
 };
 </script>
 
