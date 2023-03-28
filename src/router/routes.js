@@ -4,11 +4,23 @@ import Search from '@/pages/Search';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Detail from '@/pages/Detail';
-
-
+import AddCartSuccess from '@/pages/AddCartSuccess'
+import ShopCart from '@/pages/ShopCart';
 
 // 配置路由信息
 export default [
+    {
+        path: "/shopcart",
+        component: ShopCart,
+        meta: { show: false },
+        name: 'shopcart',
+    },
+    {
+        path: "/addcartsuccess",
+        component: AddCartSuccess,
+        meta: { show: false },
+        name: 'addcartsuccess',
+    },
     {
         path: "/detail/:skuid",
         component: Detail,

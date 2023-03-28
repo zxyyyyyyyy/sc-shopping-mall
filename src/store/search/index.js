@@ -8,6 +8,7 @@ const mutations = {
     },
 };
 const actions = {
+    // 获取搜索页面
     async getSearchInfo({ commit }, params = {}) {
         // params形参：是当用户派发action第二个参数传递过来的，至少是一个空对象
         let result = await reqGetSearchInfo(params);
@@ -15,6 +16,8 @@ const actions = {
             commit("GETSEARCHINFO", result.data);
         }
     },
+    // 获取详情商品页面
+    
 
 };
 // 简化仓库中的数据
