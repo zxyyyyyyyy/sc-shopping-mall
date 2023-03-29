@@ -21,6 +21,7 @@
               type="checkbox"
               name="chk_list"
               :checked="cart.isChecked == 1"
+              @change="updateChecked(cart, $event)"
             />
           </li>
           <li class="cart-list-con2">
@@ -68,11 +69,16 @@
     </div>
     <div class="cart-tool">
       <div class="select-all">
-        <input class="chooseAll" type="checkbox" :checked="isAllCheck" />
+        <input
+          class="chooseAll"
+          type="checkbox"
+          :checked="isAllCheck&&cartInfoList.length>0"
+          @change="updateAllCartChecked"
+        />
         <span>全选</span>
       </div>
       <div class="option">
-        <a href="#none">删除选中的商品</a>
+        <a @click="deleteAllCheckedCart">删除选中的商品</a>
         <a href="#none">移到我的关注</a>
         <a href="#none">清除下柜商品</a>
       </div>
@@ -156,6 +162,39 @@ export default {
         alert(error.message);
       }
     },
+
+    // 修改商品选中状态
+    async updateChecked(cart, event) {
+      try {
+        let isChecked = cart.isChecked == 1 ? 0 : 1;
+        await this.$store.dispatch("updateChecked", {
+          skuId: cart.skuId,
+          isChecked,
+        });
+        this.getData();
+      } catch (error) {
+        alert(error.message);
+      }
+    },
+    // 删除全部选中的商品：没有删除全选的接口
+    async deleteAllCheckedCart() {
+      try {
+        await this.$store.dispatch("deleteAllCheckedCart");
+        this.getData();
+      } catch (error) {
+        alert(error.message);
+      }
+    },
+    // 修改全部商品的选中状态
+    async updateAllCartChecked(event) {
+      try {
+        let checked = event.target.checked ? "1" : "0";
+        await this.$store.dispatch("updateAllCartIsChecked", checked);
+        this.getData();
+      } catch (error) {
+        alert(error.message);
+      }
+    },
   },
   computed: {
     ...mapGetters(["cartList"]),
@@ -167,7 +206,9 @@ export default {
     totalPrice() {
       let sum = 0;
       this.cartInfoList.forEach((item) => {
-        sum += item.skuNum * item.skuPrice;
+        if(item.isChecked ==1){
+          sum += item.skuNum * item.skuPrice;
+        }
       });
       return sum;
     },
