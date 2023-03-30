@@ -35,6 +35,7 @@ export default {
       mounted(){
         // 获取floor数据
         this.$store.dispatch('getFloorList');
+        
       },
       computed:{
         ...mapState({

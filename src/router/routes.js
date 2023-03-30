@@ -6,9 +6,23 @@ import Register from '@/pages/Register';
 import Detail from '@/pages/Detail';
 import AddCartSuccess from '@/pages/AddCartSuccess'
 import ShopCart from '@/pages/ShopCart';
+import Trade from '@/pages/Trade';
+import Pay from '@/pages/Pay';
 
 // 配置路由信息
 export default [
+    {
+        path: "/pay",
+        component: Pay,
+        meta: { show: false },
+        name: 'pay',
+    },
+    {
+        path: "/trade",
+        component: Trade,
+        meta: { show: false },
+        name: 'trade',
+    },
     {
         path: "/shopcart",
         component: ShopCart,
