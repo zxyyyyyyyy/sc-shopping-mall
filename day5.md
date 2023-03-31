@@ -192,9 +192,50 @@ router.beforeEach(async (to, from, next) => {
     },
 
 11.打包上线
-打包： npm run build 
+11.1打包： npm run build 
 项目打包后，代码都是经过压缩加密的，如果运行时报错，输入的错误信息无法准确得知是哪里的代码错误。
 有了 map 就可以像未加密的代码一样，准确的输出是哪一行哪一列有错。
 所以该文件如果项目不需要是可以去除掉
-vue.config.js 配置
+vue.config.js 配置  去掉打包时的map
 productionSourceMap:false,
+
+11.2购买服务器
+
+---1.阿里云  2.腾讯云 ...
+
+---购买完后，去个人中心去终止密码，用户名不能改就为root,
+   然后再设置安全组，让服务器的一些端口号打开
+
+---利用xshell工具登录服务器，用到用户名和密码
+
+linux 常用指令
+/根目录  cd跳转目录  ls查看  mkdir创建目录  pwd查看绝对路径
+
+---Xftp7工具:输入用户名，密码。左边页面是本地电脑上的目录，右边是这个服务器上的目录
+往上面的远程服务器传文件的，可以查看到上面创建的目录，一般在www目录下，放置前台项目，就是该项目名下，放入dist文件夹
+
+12.nginx反向代理----一个服务器，帮你买的服务器（项目的部署服务器） 去另一个服务器拿数据 
+1.让人一访问你买的ip地址就能访问到 你这个项目 ----进行相应的配置
+http://82.156.11.187/   ==>  root/jch/www/shangpinhui/dist
+2.项目数据来源于服务器  http://39.98.123.211
+
+nginx配置：
+---在xshell中进入到 根目录/ 下的 etc 当中，在etc目录下有nginx，再进入到nginx目录下，
+---[安装过有nginx,没有安装过就没有，安装：在etc目录下:  yum install nginx    ]
+---安装完nginx服务器以后，在nginx目录下，多了一个nginx.conf文件，在这个文件中进行配置
+---vim nginx.conf  进行编辑(修改内容得用键盘上的Insert进行,退出按键盘Esc,然后输入wq回车 进行保存)，主要添加如下两项：
+
+解决第一个问题：(注意！！不能直接复制粘贴进去，因为windows和Linux里的空格不一样)
+location / {
+    root /root/jch/www/shangpinhui/dist;
+    index index.html;
+    try_files $uri $uri/ /index.html;
+}
+解决第二个问题：去另一个服务器获取数据，反向代理
+location /api {
+    proxy_pass http://39.98.123.211;
+}
+
+---nginx服务器跑起来：  service nginx start 
+
+访问买的服务器就可以访问到了
