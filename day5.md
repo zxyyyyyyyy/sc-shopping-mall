@@ -82,10 +82,82 @@ router.beforeEach(async (to, from, next) => {
             }
         }
     } else {
-        // 未登录，没处理完，后期处理
-        next();
+        // 未登录，不能去交易相关，不能去支付相关[pay|paysuccess],不能去个人中心
+        // 未登录去上面的这些路由---去登录页,去的其他路由，放行
+        let toPath = to.path;
+        if(toPath.indexOf('/trade')!=-1||toPath.indexOf('/pay')!=-1||toPath.indexOf('/center')!=-1){
+            // 把未登录的时候想去而没有去成的信息，存储于地址栏中,登录后直接跳转
+            next('/login?redirect='+toPath);
+        }else{
+            // 去的其他路由
+            next();
+        }
     }
 })
+
+---未登录情况时：在login组件内，登录成功跳转路由的时候进行判断，判断路径中是否有query参数，有跳query参数，没有跳home首页
+// 登录的路由组件：看路由当中是否有query参数，有则跳query参数的路由，没有再跳首页
+          // if(this.$route.query){
+          //   this.$router.push(this.$route.query.redirect);
+          // }else{
+          //   this.$router.push('/home');
+          // }
+          let toPath = this.$route.query.redirect || '/home';
+          this.$router.push(toPath);
+
+---------------------------------------------------------------------------------
+路由独享守卫：只负责设置的这个路由，别的路由不受影响
+登录后，不能直接去交易详情页面，得从购物车提交订单才可以，在交易详情的路由里面加入  路由独享守卫 
+{
+        path: "/trade",
+        component: Trade,
+        meta: { show: false },
+        name: 'trade',
+        // 路由独享守卫
+        beforeEnter:(to,from,next)=>{
+            // 去交易详情页面，必须从购物车而来
+            if(from.path == '/shopcart'){
+                next();
+            }else{
+                // 去其他路由，停在当前路由
+                // false: 取消当前的导航。如果浏览器的 URL 改变了(可能是用户手动或者浏览器后退按钮)，那么 URL 地址会重置到 from 路由对应的地址。
+                next(false);
+            }
+        }
+    },
+
+---同理：pay支付页面路由，只能从trade路由才能跳-----paysuccess支付成功页面路由，只能从pay路由才能跳
+-----------------------------------------------------------------------------------------
+组件内守卫：在组件内写   常用：全局守卫，路由独享守卫   练习一下组件内守卫，用paysuccess支付成功页面
+ export default {
+    name: 'PaySuccess',
+    // 组件内守卫
+    beforeRouteEnter(to, from,next) {
+    // 在渲染该组件的对应路由被验证前调用
+    // 不能获取组件实例 `this` ！
+    // 因为当守卫执行时，组件实例还没被创建！
+    if(from.path == '/pay'){
+      next();
+    }else{
+      next(false);
+    }
+  },
+  }
+
+  一共三个组件内守卫：上面的是 进入路由之前， 还有两个  组件复用时  路由离开时
+
+  beforeRouteUpdate(to, from,next) {
+    // 在当前路由改变，但是该组件被复用时调用
+    // 举例来说，对于一个带有动态参数的路径 `/users/:id`，在 `/users/1` 和 `/users/2` 之间跳转的时候，
+    // 由于会渲染同样的 `UserDetails` 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
+    // 因为在这种情况发生的时候，组件已经挂载好了，导航守卫可以访问组件实例 `this`
+  },
+  beforeRouteLeave(to, from,next) {
+    // 在导航离开渲染该组件的对应路由时调用
+    // 与 `beforeRouteUpdate` 一样，它可以访问组件实例 `this`
+  },
+
+
 
 4.获取交易页面用户信息？
 用户的登录了才能获取到用户地址信息，不登录没办法获取到
@@ -98,3 +170,31 @@ router.beforeEach(async (to, from, next) => {
 
 5.1生成二维码   qrcode
 
+6.个人中心
+当中用到了之前封装的组件--分页器
+
+7.图片懒加载  vue-lazyload
+
+8.自定义插件
+
+9.表单验证  vee-validate
+
+10.路由懒加载
+当打包构建应用时，JavaScript 包会变得非常大，影响页面加载。
+如果我们能把不同路由对应的组件分割成不同的代码块，然后当路由被访问的时候才加载对应组件，这样就会更加高效。
+
+ {
+        name: 'search',
+        path: "/search/:keyword?",
+        component: ()=>import('@/pages/Search'),
+        meta: { show: true },
+
+    },
+
+11.打包上线
+打包： npm run build 
+项目打包后，代码都是经过压缩加密的，如果运行时报错，输入的错误信息无法准确得知是哪里的代码错误。
+有了 map 就可以像未加密的代码一样，准确的输出是哪一行哪一列有错。
+所以该文件如果项目不需要是可以去除掉
+vue.config.js 配置
+productionSourceMap:false,

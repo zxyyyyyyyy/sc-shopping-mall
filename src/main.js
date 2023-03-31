@@ -30,6 +30,20 @@ import {MessageBox} from 'element-ui';
 Vue.prototype.$msgbox = MessageBox;
 Vue.prototype.$alert = MessageBox.alert;
 
+// 引入图片懒加载
+import VueLazyload from 'vue-lazyload';
+import atm from '@/assets/0.gif';
+// 注册插件
+
+// 引入表单校验插件
+import "@/plugins/validate";
+
+Vue.use(VueLazyload,{
+  // 懒加载默认的图片
+  loading: atm,
+});
+
+
 // Vue.config.productionTip = false
 
 new Vue({
